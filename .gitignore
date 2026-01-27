@@ -1,0 +1,69 @@
+####################################
+# GLOBAL
+####################################
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+####################################
+# NODE (React + Angular)
+####################################
+node_modules/
+dist/
+build/
+.cache/
+.parcel-cache/
+.eslintcache
+
+####################################
+# REACT CLIENT
+####################################
+clients/react-client/node_modules/
+clients/react-client/dist/
+clients/react-client/build/
+clients/react-client/.env*
+
+####################################
+# ANGULAR CLIENT
+####################################
+clients/angular-client/node_modules/
+clients/angular-client/dist/
+clients/angular-client/.angular/
+clients/angular-client/.env*
+
+####################################
+# LARAVEL API
+####################################
+apis/laravel-api/vendor/
+apis/laravel-api/node_modules/
+apis/laravel-api/storage/*.key
+apis/laravel-api/storage/framework/cache/*
+apis/laravel-api/storage/framework/sessions/*
+apis/laravel-api/storage/framework/views/*
+apis/laravel-api/storage/logs/*
+apis/laravel-api/bootstrap/cache/*
+apis/laravel-api/public/storage
+
+####################################
+# DATABASE / TEMP
+####################################
+*.sqlite
+*.sqlite3
+
+####################################
+# TEST / COVERAGE
+####################################
+coverage/
