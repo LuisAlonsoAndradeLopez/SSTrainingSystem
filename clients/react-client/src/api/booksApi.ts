@@ -1,12 +1,18 @@
-import axios from 'axios';
+import api from './api';
 import type { Book } from '../types/Book';
 
-const booksApi = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api'
-});
+export const getBooks = () =>
+  api.get<Book[]>('/books');
 
-export const getBooks = () => booksApi.get<Book[]>('/books');
-export const getBook = (id: number) => booksApi.get<Book>(`/books/${id}`);
-export const createBook = (book: Book) => booksApi.post<Book>('/books', book);
-export const updateBook = (id: number, book: Book) => booksApi.put<Book>(`/books/${id}`, book);
-export const deleteBook = (id: number) => booksApi.delete(`/books/${id}`);
+export const getBook = (id: number) =>
+  api.get<Book>(`/books/${id}`);
+
+export const createBook = (book: Book) =>
+  api.post<Book>('/books', book);
+
+export const updateBook = (id: number, book: Book) =>
+  api.put<Book>(`/books/${id}`, book);
+
+export const deleteBook = (id: number) =>
+  api.delete(`/books/${id}`);
+

@@ -8,6 +8,8 @@ npm install -g @angular/cli
 npm install axios react-router-dom
 npm install tailwindcss @tailwindcss/vite
 
+composer require laravel/sanctum
+
 # Installation process
 
 1. Execute "sstrainingsystem.sql".
