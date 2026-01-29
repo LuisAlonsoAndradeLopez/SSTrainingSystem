@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from '../api/authApi';
-import axios from "axios";
+import { getAxiosErrorMessage } from "../utils/axiosError";
 
 export default function RegisterUser() {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     username: '',
     email: '',
@@ -34,19 +36,16 @@ export default function RegisterUser() {
 
       localStorage.setItem('token', res.data.token);
       alert("User registered successfully");
+      navigate('/');
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        alert(error.response?.data?.message || "Registration failed");
-      } else {
-        alert("Unexpected error occurred");
-      }
+      alert(getAxiosErrorMessage(error, "Registration failed"));
     }
   };
 
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <div className="flex flex-col items-center justify-center m-5 p-8 gap-5 w-[180%] bg-neutral-900">
+      <div className="flex flex-col items-center justify-center m-38 p-8 gap-5 w-[60%] bg-neutral-900">
         <h1 className="text-3xl font-bold text-white mb-5">Register User</h1>
         <input
           type="text"

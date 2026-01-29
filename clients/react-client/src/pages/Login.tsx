@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from 'react';
 import { login } from '../api/authApi';
-import axios from "axios";
+import { getAxiosErrorMessage } from "../utils/axiosError";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -26,20 +26,17 @@ export default function Login() {
         password: form.password,
       });
 
-      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('loggedUserToken', res.data.token);
+      localStorage.setItem('loggedUserName', res.data.user.name);
       navigate('/book_management');
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        alert(error.response?.data?.message || "Invalid credentials");
-      } else {
-        alert("Unexpected error occurred");
-      }
+      alert(getAxiosErrorMessage(error, "Registration failed"));
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <div className="flex flex-col items-center justify-center m-5 p-8 gap-5 w-[180%] bg-neutral-900">
+      <div className="flex flex-col items-center justify-center my-44 p-8 gap-5 w-[50%] h-100 bg-neutral-900">
         <h1 className="text-3xl font-bold text-white mb-5">LogIn</h1>
         <input
           type="text"
@@ -62,12 +59,12 @@ export default function Login() {
           <button
             type="button"
             onClick={loginButtonOnClick}
-            className="w-[25%] text-center !text-white bg-blue-600 hover:bg-blue-700
+            className="w-[25%] text-center text-white bg-blue-600 hover:bg-blue-700
              font-semibold py-2 rounded-md transition duration-200"
           >
             Login
           </button>
-          <Link to="/register_user" className="w-[25%] text-center !text-white bg-red-600 hover:bg-blue-700
+          <Link to="/register_user" className="w-[25%] text-center !text-white bg-red-600 hover:bg-red-700
               font-semibold py-2 rounded-md transition duration-200">Register User</Link>
         </div>
       </div>
