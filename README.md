@@ -12,5 +12,5 @@ composer require laravel/sanctum
 
 # Installation process
 
-1. Execute "sstrainingsystem.sql".
-2.
+1. Execute "php artisan migrate".
+2. Execute "php artisan serve"

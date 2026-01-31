@@ -1,26 +1,54 @@
-//TODO:
-// Datepicker to published year
-// Filters should work
-// Books management divs hiding and showing
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { createBook, getBooks } from "../api/booksApi";
+import { createBook, getBooks, updateBook } from "../api/booksApi";
 import type { Book } from "../types/Book";
 import { getAxiosErrorMessage } from "../utils/axiosError";
 
 export default function BooksManagement() {
-  const [ssTrainingSystemDatabaseBooks, setSSTrainingSystemDatabaseBooksBooks] = useState<Book[]>([]);
-  useEffect(() => {
-    getBooks()
-      .then(res => setSSTrainingSystemDatabaseBooksBooks(res.data))
-      .catch(err => console.error(err));
-  }, []);
+  //Auxiliary consts
+  const getAllSSTrainingSystemDatabaseBooks = async () => {
+    const res = await getBooks();
+    setSSTrainingSystemDatabaseBooks(res.data);
+  };
 
-  const [addBookForm, setAddBookForm] = useState({
+  //Book filtering useStates and auxiliary conts
+  const [booksSearchText, setBooksSearchText] = useState('');
+  const [booksSearchType, setBooksSearchType] = useState<'title' | 'author'>('title');
+  const inputPlaceholder =
+    booksSearchType === 'title'
+      ? 'Search by Title...'
+      : 'Search by Author...';
+
+  //Books useStates and filtered books consts
+  const [ssTrainingSystemDatabaseBooks, setSSTrainingSystemDatabaseBooks] = useState<Book[]>([]);
+  const filteredSSTrainingSystemDatabaseBooks =
+    ssTrainingSystemDatabaseBooks.filter((book) => {
+      const value =
+        booksSearchType === 'title'
+          ? book.title
+          : book.author;
+
+      return value
+        .toLowerCase()
+        .startsWith(booksSearchText.toLowerCase());
+    });
+
+  const [addBookForm, setAddBookForm] = useState<Book>({
     title: '',
     author: '',
-    published_year: '',
+    release_date: '',
+  });
+  const [selectedBookForm, setSelectedBookForm] = useState<Book>({
+    id: 0,
+    title: '',
+    author: '',
+    release_date: '',
+  });
+  const [modifyBookForm, setModifyBookForm] = useState<Book>({
+    id: 0,
+    title: '',
+    author: '',
+    release_date: '',
   });
 
   const addBookHandleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,37 +58,83 @@ export default function BooksManagement() {
     });
   };
 
-  const [selectABookDivIsVisible, setSelectABookDivIsVisible] = useState(true);
-  const [addBookDivIsVisible, setAddBookDivIsVisible] = useState(false);
-  const [modifyBookDivIsVisible, setModifyBookDivIsVisible] = useState(false);
+  const modifyBookHandleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setModifyBookForm({
+      ...modifyBookForm,
+      [e.target.name]: e.target.value,
+    });
+  };
 
-  //Buttons OnClick Functions
+  const clearAddBookForm = () => {
+    setAddBookForm({
+      title: '',
+      author: '',
+      release_date: '',
+    });
+  };
+
+  //Books divs CRUD visibility
+  type ViewMode = 'nothing_selected' | 'add' | 'view' | 'edit';
+  const [viewMode, setViewMode] = useState<ViewMode>('nothing_selected');
+
+  //Buttons OnClick Consts
   const addBookButton1OnClick = async () => {
-
+    setViewMode('add');
   };
 
   const addBookButton2OnClick = async () => {
     try {
-      await createBook({
-        title: addBookForm.title,
-        author: addBookForm.author,
-        published_year: addBookForm.published_year,
-      });
+      await createBook(addBookForm);
 
       alert("Book added successfully");
-      navigate('/');
+      getAllSSTrainingSystemDatabaseBooks();
+      setViewMode('nothing_selected');
+      clearAddBookForm();
     } catch (error) {
       alert(getAxiosErrorMessage(error, "Registration failed"));
     }
   };
 
-  const ssTrainingSystemDatabaseBookButtonOnClick = async () => {
-
+  const ssTrainingSystemDatabaseBookButtonOnClick = (book: Book) => {
+    setSelectedBookForm(book);
+    setViewMode('view');
   };
 
-  const modifyBookButtonOnClick = async () => {
+  const modifyBookButton1OnClick = async () => {
+    setModifyBookForm({
+      title: selectedBookForm.title,
+      author: selectedBookForm.author,
+      release_date: selectedBookForm.release_date
+    });
 
+    setViewMode('edit');
   };
+
+  const modifyBookButton2OnClick = async () => {
+    if (!selectedBookForm.id) {
+      return;
+    }
+
+    try {
+      await updateBook(selectedBookForm.id, {
+        title: modifyBookForm.title,
+        author: modifyBookForm.author,
+        release_date: modifyBookForm.release_date,
+      });
+
+      alert("Book modified successfully");
+      getAllSSTrainingSystemDatabaseBooks();
+      setViewMode('nothing_selected');
+      clearAddBookForm();
+    } catch (error) {
+      alert(getAxiosErrorMessage(error, "Modification failed"));
+    }
+  };
+
+  //Initializer code
+  useEffect(() => {
+    getAllSSTrainingSystemDatabaseBooks();
+  }, []);
 
   return (
     <div className="flex flex-col justify-center items-center p-4 gap-4">
@@ -85,12 +159,16 @@ export default function BooksManagement() {
           <h2 className="text-3xl">Search: </h2>
           <input
             type="text"
-            name="booksSearchText"
-            placeholder="Search by Title..."
+            name="booksbooksSearchText"
+            placeholder={inputPlaceholder}
+            value={booksSearchText}
+            onChange={(e) => setBooksSearchText(e.target.value)}
             className="w-[33.3%] h-10 px-2 bg-white text-xl text-black rounded-md"
           />
           <select
             name="booksSearchType"
+            value={booksSearchType}
+            onChange={(e) => setBooksSearchType(e.target.value as 'title' | 'author')}
             className="w-[33.3%] h-10 px-2 bg-white text-xl text-black rounded-md"
           >
             <option value="title">Title</option>
@@ -110,9 +188,9 @@ export default function BooksManagement() {
         <div className="flex flex-row justify-center items-start w-full h-17 gap-4 rounded-lg">
           {/* Books list div */}
           <div className="flex flex-col justify-start items-center w-full h-135 p-4 gap-4 overflow-y-auto bg-neutral-700 rounded-lg">
-            {ssTrainingSystemDatabaseBooks.map((ssTrainingSystemDatabaseBook) => (
+            {filteredSSTrainingSystemDatabaseBooks.map((filteredSSTrainingSystemDatabaseBook) => (
               <button
-                key={ssTrainingSystemDatabaseBook.id}
+                key={filteredSSTrainingSystemDatabaseBook.id}
                 className="
                 flex-shrink-0
                   flex flex-col justify-center items-center
@@ -122,27 +200,27 @@ export default function BooksManagement() {
                   hover:bg-neutral-800
                   transition
                 "
-                onClick={ssTrainingSystemDatabaseBookButtonOnClick}
+                onClick={() => ssTrainingSystemDatabaseBookButtonOnClick(filteredSSTrainingSystemDatabaseBook)}
               >
-                <h2 className="text-3xl">Title: {ssTrainingSystemDatabaseBook.title}</h2>
-                <h2 className="text-3xl">Author: {ssTrainingSystemDatabaseBook.author}</h2>
+                <h2 className="text-3xl">Title: {filteredSSTrainingSystemDatabaseBook.title}</h2>
+                <h2 className="text-3xl">Author: {filteredSSTrainingSystemDatabaseBook.author}</h2>
               </button>
             ))}
           </div>
 
           {/* Books actions div */}
           <div className="flex flex-col justify-center items-center w-full h-135 bg-neutral-700 rounded-lg">
-            {!selectABookDivIsVisible && (
+            {viewMode === 'nothing_selected' && (
               <div style={{ fontSize: "90px" }} className="font-semibold">Select a book</div>
             )}
-            {addBookDivIsVisible && (
+            {viewMode === 'add' && (
               <div className="flex flex-col justify-start items-center w-full h-120 gap-7">
                 <h2 style={{ fontSize: "50px" }} className="font-semibold">Add Book</h2>
                 <div className="flex flex-col justify-start items-center w-full gap-3">
                   <h2 className="text-2xl font-semibold">Name:</h2>
                   <input
                     type="text"
-                    name="addBookNameText"
+                    name="title"
                     value={addBookForm.title}
                     onChange={addBookHandleChange}
                     className="w-[60%] h-10 px-2 bg-white text-xl text-black rounded-md"
@@ -150,16 +228,16 @@ export default function BooksManagement() {
                   <h2 className="text-2xl font-semibold">Author:</h2>
                   <input
                     type="text"
-                    name="addBookAuthorText"
+                    name="author"
                     value={addBookForm.author}
                     onChange={addBookHandleChange}
                     className="w-[60%] h-10 px-2 bg-white text-xl text-black rounded-md"
                   />
-                  <h2 className="text-2xl font-semibold">Published Year:</h2>
+                  <h2 className="text-2xl font-semibold">Release Date:</h2>
                   <input
                     type="date"
-                    name="addBookPublishedYearText"
-                    value={addBookForm.published_year}
+                    name="release_date"
+                    value={addBookForm.release_date}
                     onChange={addBookHandleChange}
                     className="w-[60%] h-10 px-2 bg-white text-xl text-black rounded-md"
                   />
@@ -174,8 +252,71 @@ export default function BooksManagement() {
                 </button>
               </div>
             )}
-            {!modifyBookDivIsVisible && (
-              <div style={{ fontSize: "90px" }}>Select a book</div>
+            {viewMode === 'view' && (
+              <div className="flex flex-col justify-start items-center w-full h-120 gap-7">
+                <h2 style={{ fontSize: "50px" }} className="font-semibold">Selected Book</h2>
+                <div className="flex flex-col justify-start items-center w-full gap-3">
+                  <h2 className="text-2xl font-semibold">Name:</h2>
+                  <div className="flex flex-row justify-start items-center w-[60%] h-10 px-2 bg-white text-xl text-black rounded-md">
+                    {selectedBookForm.title}
+                  </div>
+                  <h2 className="text-2xl font-semibold">Author:</h2>
+                  <div className="flex flex-row justify-start items-center w-[60%] h-10 px-2 bg-white text-xl text-black rounded-md">
+                    {selectedBookForm.author}
+                  </div>
+                  <h2 className="text-2xl font-semibold">Release Date:</h2>
+                  <div className="flex flex-row justify-start items-center w-[60%] h-10 px-2 bg-white text-xl text-black rounded-md">
+                    {selectedBookForm.release_date}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={modifyBookButton1OnClick}
+                  className="w-[21%] text-center text-white bg-blue-800 hover:bg-blue-700
+                  font-semibold py-2 rounded-md transition duration-200"
+                >
+                  Modify Book
+                </button>
+              </div>
+            )}
+            {viewMode === 'edit' && (
+              <div className="flex flex-col justify-start items-center w-full h-120 gap-7">
+                <h2 style={{ fontSize: "50px" }} className="font-semibold">Modify Book</h2>
+                <div className="flex flex-col justify-start items-center w-full gap-3">
+                  <h2 className="text-2xl font-semibold">Name:</h2>
+                  <input
+                    type="text"
+                    name="title"
+                    value={modifyBookForm.title}
+                    onChange={modifyBookHandleChange}
+                    className="w-[60%] h-10 px-2 bg-white text-xl text-black rounded-md"
+                  />
+                  <h2 className="text-2xl font-semibold">Author:</h2>
+                  <input
+                    type="text"
+                    name="author"
+                    value={modifyBookForm.author}
+                    onChange={modifyBookHandleChange}
+                    className="w-[60%] h-10 px-2 bg-white text-xl text-black rounded-md"
+                  />
+                  <h2 className="text-2xl font-semibold">Release Date:</h2>
+                  <input
+                    type="date"
+                    name="release_date"
+                    value={modifyBookForm.release_date}
+                    onChange={modifyBookHandleChange}
+                    className="w-[60%] h-10 px-2 bg-white text-xl text-black rounded-md"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={modifyBookButton2OnClick}
+                  className="w-[21%] text-center text-white bg-blue-800 hover:bg-blue-700
+                  font-semibold py-2 rounded-md transition duration-200"
+                >
+                  Modify Book
+                </button>
+              </div>
             )}
           </div>
         </div>
